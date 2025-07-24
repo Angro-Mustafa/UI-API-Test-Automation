@@ -36,11 +36,20 @@ public class SauceDemoUITests {
         Assert.assertTrue(driver.findElement(By.cssSelector("[data-test='error']")).isDisplayed());
     }
 
-    @Test(priority = 3, dependsOnMethods = "loginWithValidCredentials")
-    public void addItemToCart() {
-        // Should already be logged in after valid login test
-        driver.findElement(By.cssSelector("[data-test='add-to-cart-sauce-labs-backpack']")).click();
-        Assert.assertEquals(driver.findElement(By.className("shopping_cart_badge")).getText(), "1");
+   @Test(priority = 3, dependsOnMethods = "loginWithValidCredentials")
+   public void addItemToCart() {
+    // Optional: Ensure on inventory page (in case of navigation by previous tests)
+    if (!driver.getCurrentUrl().contains("inventory")) {
+        driver.get("https://www.saucedemo.com/inventory.html");
+    }
+    // Wait for the product grid to be present
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("inventory_list")));
+    // Wait for the add-to-cart button and click
+    By addBtn = By.cssSelector("[data-test='add-to-cart-sauce-labs-backpack']");
+    wait.until(ExpectedConditions.elementToBeClickable(addBtn)).click();
+    // Assert cart badge updated
+    String badgeText = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className   ("shopping_cart_badge"))).getText();
+    Assert.assertEquals(badgeText, "1");
     }
 
     @Test(priority = 4, dependsOnMethods = "addItemToCart")
