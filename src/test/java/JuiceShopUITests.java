@@ -25,24 +25,24 @@ public class JuiceShopUITests {
     }
 
     private void dismissPopups() {
-        // Welcome dialog
-        try {
-            WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(4))
-                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
-            closeBtn.click();
-        } catch (Exception ignored) {}
-        // Cookie consent
-        try {
-            WebElement cookieBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.cc-btn.cc-dismiss")));
-            cookieBtn.click();
-        } catch (Exception ignored) {}
-        // Snack bar
-        try {
-            new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
-        } catch (Exception ignored) {}
+    try {
+        // Use your provided XPath for welcome dialog
+        WebElement dismissBtn = new WebDriverWait(driver, Duration.ofSeconds(4))
+            .until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"mat-mdc-dialog-0\"]/div/div/app-welcome-banner/div[2]/button[2]/span[2]/span")));
+        // Click the parent button
+        dismissBtn.findElement(By.xpath("./ancestor::button")).click();
+    } catch (Exception ignored) {}
+    try {
+        WebElement cookieBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
+            .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.cc-btn.cc-dismiss")));
+        cookieBtn.click();
+    } catch (Exception ignored) {}
+    try {
+        new WebDriverWait(driver, Duration.ofSeconds(3))
+            .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
+    } catch (Exception ignored) {}
     }
+
 
     private void waitForSnackBarText(String expected) {
         try {
