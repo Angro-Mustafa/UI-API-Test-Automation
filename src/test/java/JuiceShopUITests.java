@@ -1,6 +1,6 @@
 import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -13,13 +13,13 @@ public class JuiceShopUITests {
 
     @BeforeClass
     public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--headless=new");
-        options.addArguments("--window-size=1920,1080");
-        options.addArguments("--user-data-dir=/tmp/chrome-user-data-" + System.currentTimeMillis());
-        driver = new ChromeDriver(options);
+        FirefoxOptions options = new FirefoxOptions();
+        options.addArguments("--headless");
+        options.addArguments("--width=1920");
+        options.addArguments("--height=1080");
+        // You may add other arguments like '--no-sandbox' if needed for CI
+        driver = new FirefoxDriver(options);
+
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.manage().window().maximize();
     }
