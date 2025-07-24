@@ -25,8 +25,8 @@ Automated testing for [SauceDemo](https://www.saucedemo.com/) (UI) and [JSONPlac
 
 ### 1. Clone the Repository
 
-git clone https://github.com/Angro-Mustafa/UI-API-Test-Automation.git
-cd UI-API-Test-Automation
+- git clone https://github.com/Angro-Mustafa/UI-API-Test-Automation.git
+- cd UI-API-Test-Automation
 
 
 ### 2. Install Dependencies
