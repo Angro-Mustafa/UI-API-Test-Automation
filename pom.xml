@@ -8,38 +8,36 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <!-- Set Java version here -->
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
+
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <webdrivermanager.version>5.7.0</webdrivermanager.version>
+        <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
+        <jacoco.plugin.version>0.8.8</jacoco.plugin.version>
+
         <selenium.version>4.15.0</selenium.version>
         <restassured.version>5.3.2</restassured.version>
         <testng.version>7.10.2</testng.version>
-        <jacoco.plugin.version>0.8.8</jacoco.plugin.version>
+        <webdrivermanager.version>5.7.0</webdrivermanager.version>
     </properties>
 
     <dependencies>
-        <!-- Selenium WebDriver for UI automation -->
+        <!-- Selenium WebDriver -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${selenium.version}</version>
-            <scope>test</scope>
         </dependency>
 
-        <!-- REST-assured for API Automation -->
+        <!-- REST-assured -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>${restassured.version}</version>
-            <scope>test</scope>
         </dependency>
 
-        <!-- TestNG Framework -->
+        <!-- TestNG -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -47,28 +45,27 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- WebDriverManager for managing browsers drivers -->
+        <!-- WebDriverManager -->
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
             <version>${webdrivermanager.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Compiler Plugin to enforce Java version -->
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.plugin.version}</version>
                 <configuration>
-                    <release>${maven.compiler.release}</release>
+                    <release>17</release>
                 </configuration>
             </plugin>
 
-            <!-- Surefire Plugin for running TestNG tests -->
+            <!-- Surefire -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -77,25 +74,21 @@
                     <includes>
                         <include>**/*Tests.java</include>
                     </includes>
-                    <testFailureIgnore>false</testFailureIgnore>
-                    <useSystemClassLoader>true</useSystemClassLoader>
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo Plugin for Code Coverage -->
+            <!-- JaCoCo -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.plugin.version}</version>
                 <executions>
-                    <!-- Attach JaCoCo agent to test phase -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-                    <!-- Generate coverage report after tests -->
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>

@@ -1,8 +1,10 @@
 name: CI Automation for Juice Shop Tests
+
 on:
   push:
     branches: [ main ]
   pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -10,28 +12,39 @@ jobs:
       selenium:
         image: selenium/standalone-chrome
         ports: [ 4444:4444 ]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+
       - uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-      - run: mvn install -DskipTests=true
-      - run: mvn test -Dtest=JuiceShopUITests
-      - run: mvn test -Dtest=JuiceShopApiTests
-      - uses: actions/upload-artifact@v4
+
+      - name: Install dependencies
+        run: mvn install -DskipTests=true
+
+      - name: Run UI tests
+        run: mvn test -Dtest=JuiceShopUITests
+
+      - name: Run API tests + generate JaCoCo report
+        run: mvn verify -Dtest=JuiceShopApiTests
+
+      - name: Upload UI screenshots
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: ui-screenshots
           path: target/screenshots/
-      - run: mvn jacoco:report
+
+      - name: Upload JaCoCo report
         if: always()
-      - uses: actions/upload-artifact@v4
-        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: target/site/jacoco/
