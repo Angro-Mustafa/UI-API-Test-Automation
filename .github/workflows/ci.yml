@@ -10,18 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     services:
       selenium:
-        image: selenium/standalone-chrome
+        image: selenium/standalone-firefox
         ports: [ 4444:4444 ]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: actions/cache@v4
+      - name: Cache Maven packages
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -32,7 +35,7 @@ jobs:
       - name: Run UI tests
         run: mvn test -Dtest=JuiceShopUITests
 
-      - name: Run API tests + generate JaCoCo report
+      - name: Run API tests and JaCoCo report
         run: mvn verify -Dtest=JuiceShopApiTests
 
       - name: Upload UI screenshots
