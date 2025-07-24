@@ -20,34 +20,29 @@ public class JuiceShopUITests {
         options.addArguments("--window-size=1920,1080");
         options.addArguments("--user-data-dir=/tmp/chrome-user-data-" + System.currentTimeMillis());
         driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.manage().window().maximize();
-        driver.get("https://juice-shop.herokuapp.com/#/login");
-        dismissPopups();
     }
 
-   private void dismissPopups() {
-    // Dismiss initial dialog (welcome)
-    try {
-        WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
-            .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
-        closeBtn.click();
-    } catch (Exception ignored) {}
-
-    // Dismiss cookie consent bar if present
-    try {
-        WebElement cookieBtn = new WebDriverWait(driver, Duration.ofSeconds(2))
-            .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.cc-btn.cc-dismiss")));
-        cookieBtn.click();
-    } catch (Exception ignored) {}
-
-    // Wait for snack bar to disappear, if shown
-    try {
-        new WebDriverWait(driver, Duration.ofSeconds(2))
-            .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
-    } catch (Exception ignored) {}
-}
-
+    private void dismissPopups() {
+        // Welcome dialog
+        try {
+            WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(4))
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
+            closeBtn.click();
+        } catch (Exception ignored) {}
+        // Cookie consent
+        try {
+            WebElement cookieBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
+                .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.cc-btn.cc-dismiss")));
+            cookieBtn.click();
+        } catch (Exception ignored) {}
+        // Snack bar
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(3))
+                .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
+        } catch (Exception ignored) {}
+    }
 
     private void waitForSnackBarText(String expected) {
         try {
@@ -72,23 +67,22 @@ public class JuiceShopUITests {
 
     @Test(priority = 1)
     public void loginWithValidCredentials() {
-    driver.get("https://juice-shop.herokuapp.com/#/login");
-    dismissPopups();
-    wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
-    driver.findElement(By.xpath("//input[@type='email']")).clear();
-    driver.findElement(By.xpath("//input[@type='email']")).sendKeys("test994@test.com");
-    driver.findElement(By.xpath("//input[@type='password']")).clear();
-    driver.findElement(By.xpath("//input[@type='password']")).sendKeys("222888Mmm!");
-    WebElement loginBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@id='loginButton']")));
-    loginBtn.click();
-    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("navbarLogoutButton")));
-    Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed());
-}
+        driver.get("https://juice-shop.herokuapp.com/#/login");
+        dismissPopups();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
+        driver.findElement(By.xpath("//input[@type='email']")).clear();
+        driver.findElement(By.xpath("//input[@type='email']")).sendKeys("test994@test.com");
+        driver.findElement(By.xpath("//input[@type='password']")).clear();
+        driver.findElement(By.xpath("//input[@type='password']")).sendKeys("222888Mmm!");
+        clickWhenClickable(By.xpath("//button[@id='loginButton']"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("navbarLogoutButton")));
+        Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed(), "Logout button not found after login.");
     }
 
     @Test(priority = 2)
     public void loginWithInvalidCredentials() {
         driver.get("https://juice-shop.herokuapp.com/#/login");
+        dismissPopups();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
         driver.findElement(By.xpath("//input[@type='email']")).clear();
         driver.findElement(By.xpath("//input[@type='email']")).sendKeys("invalid@user.com");
@@ -101,6 +95,7 @@ public class JuiceShopUITests {
     @Test(priority = 3)
     public void registerNewUser() {
         driver.get("https://juice-shop.herokuapp.com/#/register");
+        dismissPopups();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("emailControl")));
         String unique = String.valueOf(System.currentTimeMillis());
         driver.findElement(By.id("emailControl")).sendKeys("auto" + unique + "@test.com");
@@ -116,6 +111,7 @@ public class JuiceShopUITests {
     @Test(priority = 4, dependsOnMethods = "loginWithValidCredentials")
     public void addItemToBasket() {
         driver.get("https://juice-shop.herokuapp.com/#/search");
+        dismissPopups();
         By addBtnLocator = By.xpath("//button[@aria-label='Add to Basket']");
         wait.until(ExpectedConditions.elementToBeClickable(addBtnLocator));
         clickWhenClickable(addBtnLocator);
@@ -146,7 +142,8 @@ public class JuiceShopUITests {
             ExpectedConditions.invisibilityOfElementLocated(removeBtnLocator),
             ExpectedConditions.textToBePresentInElementLocated(By.cssSelector("mat-card"), "Your basket is empty")
         ));
-        boolean empty = driver.getPageSource().contains("Your basket is empty") || driver.findElements(By.cssSelector("mat-row")).size() == 0;
+        boolean empty = driver.getPageSource().contains("Your basket is empty") ||
+                        driver.findElements(By.cssSelector("mat-row")).size() == 0;
         Assert.assertTrue(empty, "Basket not empty after removal.");
     }
 
