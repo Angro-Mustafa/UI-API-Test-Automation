@@ -29,19 +29,19 @@ public class JuiceShopUITests {
     private void dismissPopups() {
         try {
             WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
-                    .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
             closeBtn.click();
         } catch (Exception ignored) {}
         try {
             new WebDriverWait(driver, Duration.ofSeconds(3))
-                    .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
+                .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
         } catch (Exception ignored) {}
     }
 
     private void waitForSnackBarText(String expected) {
         try {
             WebElement snackBar = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.cssSelector(".mat-simple-snack-bar-content")));
+                By.cssSelector(".mat-simple-snack-bar-content")));
             Assert.assertTrue(snackBar.getText().toLowerCase().contains(expected.toLowerCase()));
         } catch (TimeoutException e) {
             Assert.fail("Snack bar with text '" + expected + "' not found in time.");
@@ -53,7 +53,6 @@ public class JuiceShopUITests {
         try {
             driver.findElement(locator).click();
         } catch (ElementClickInterceptedException e) {
-            // Try to remove overlays and retry
             dismissPopups();
             wait.until(ExpectedConditions.elementToBeClickable(locator));
             driver.findElement(locator).click();
@@ -63,13 +62,12 @@ public class JuiceShopUITests {
     @Test(priority = 1)
     public void loginWithValidCredentials() {
         driver.navigate().refresh();
-        driver.findElement(By.id("email")).clear();
-        driver.findElement(By.id("email")).sendKeys("test994@test.com");
-        driver.findElement(By.id("password")).clear();
-        driver.findElement(By.id("password")).sendKeys("222888Mmm!");
-
-        clickWhenClickable(By.id("loginButton"));
-
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
+        driver.findElement(By.xpath("//input[@type='email']")).clear();
+        driver.findElement(By.xpath("//input[@type='email']")).sendKeys("test994@test.com");
+        driver.findElement(By.xpath("//input[@type='password']")).clear();
+        driver.findElement(By.xpath("//input[@type='password']")).sendKeys("222888Mmm!");
+        clickWhenClickable(By.xpath("//button[@id='loginButton']"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("navbarLogoutButton")));
         Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed(), "Logout button not found after login.");
     }
@@ -77,11 +75,12 @@ public class JuiceShopUITests {
     @Test(priority = 2)
     public void loginWithInvalidCredentials() {
         driver.get("https://juice-shop.herokuapp.com/#/login");
-        driver.findElement(By.id("email")).clear();
-        driver.findElement(By.id("email")).sendKeys("invalid@user.com");
-        driver.findElement(By.id("password")).clear();
-        driver.findElement(By.id("password")).sendKeys("WrongPass123!");
-        clickWhenClickable(By.id("loginButton"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
+        driver.findElement(By.xpath("//input[@type='email']")).clear();
+        driver.findElement(By.xpath("//input[@type='email']")).sendKeys("invalid@user.com");
+        driver.findElement(By.xpath("//input[@type='password']")).clear();
+        driver.findElement(By.xpath("//input[@type='password']")).sendKeys("WrongPass123!");
+        clickWhenClickable(By.xpath("//button[@id='loginButton']"));
         waitForSnackBarText("invalid");
     }
 
@@ -93,7 +92,6 @@ public class JuiceShopUITests {
         driver.findElement(By.id("emailControl")).sendKeys("auto" + unique + "@test.com");
         driver.findElement(By.id("passwordControl")).sendKeys("SomePass123!");
         driver.findElement(By.id("repeatPasswordControl")).sendKeys("SomePass123!");
-        // Wait for the security question to show up and interact
         wait.until(ExpectedConditions.presenceOfElementLocated(By.name("securityQuestion")));
         WebElement securityInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("securityAnswerControl")));
         securityInput.sendKeys("Automation");
@@ -104,7 +102,7 @@ public class JuiceShopUITests {
     @Test(priority = 4, dependsOnMethods = "loginWithValidCredentials")
     public void addItemToBasket() {
         driver.get("https://juice-shop.herokuapp.com/#/search");
-        By addBtnLocator = By.cssSelector("button[aria-label='Add to Basket']");
+        By addBtnLocator = By.xpath("//button[@aria-label='Add to Basket']");
         wait.until(ExpectedConditions.elementToBeClickable(addBtnLocator));
         clickWhenClickable(addBtnLocator);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.fa-layers-counter")));
@@ -115,24 +113,24 @@ public class JuiceShopUITests {
     @Test(priority = 5, dependsOnMethods = "addItemToBasket")
     public void editBasketItemQuantity() {
         clickWhenClickable(By.id("navbarBasketButton"));
-        By qtyLocator = By.cssSelector("input[name='quantity']");
+        By qtyLocator = By.xpath("//input[@name='quantity']");
         WebElement qtyInput = wait.until(ExpectedConditions.visibilityOfElementLocated(qtyLocator));
         int origQty = Integer.parseInt(qtyInput.getAttribute("value"));
         qtyInput.clear();
         qtyInput.sendKeys(String.valueOf(origQty + 1));
-        clickWhenClickable(By.cssSelector("button[aria-label='update quantity']"));
+        clickWhenClickable(By.xpath("//button[@aria-label='update quantity']"));
         wait.until(ExpectedConditions.attributeToBe(qtyInput, "value", String.valueOf(origQty + 1)));
         Assert.assertEquals(qtyInput.getAttribute("value"), String.valueOf(origQty + 1));
     }
 
     @Test(priority = 6, dependsOnMethods = "editBasketItemQuantity")
     public void deleteItemFromBasket() {
-        By removeBtnLocator = By.cssSelector("button[aria-label^='Remove']"); // Removes any item
+        By removeBtnLocator = By.xpath("//button[starts-with(@aria-label, 'Remove')]");
         wait.until(ExpectedConditions.elementToBeClickable(removeBtnLocator));
         clickWhenClickable(removeBtnLocator);
         wait.until(ExpectedConditions.or(
-                ExpectedConditions.invisibilityOfElementLocated(removeBtnLocator),
-                ExpectedConditions.textToBePresentInElementLocated(By.cssSelector("mat-card"), "Your basket is empty")
+            ExpectedConditions.invisibilityOfElementLocated(removeBtnLocator),
+            ExpectedConditions.textToBePresentInElementLocated(By.cssSelector("mat-card"), "Your basket is empty")
         ));
         boolean empty = driver.getPageSource().contains("Your basket is empty") || driver.findElements(By.cssSelector("mat-row")).size() == 0;
         Assert.assertTrue(empty, "Basket not empty after removal.");
