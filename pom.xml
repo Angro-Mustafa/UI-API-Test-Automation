@@ -19,6 +19,7 @@
         <selenium.version>4.15.0</selenium.version>
         <restassured.version>5.3.2</restassured.version>
         <testng.version>7.10.2</testng.version>
+        <jacoco.plugin.version>0.8.8</jacoco.plugin.version>
     </properties>
 
     <dependencies>
@@ -79,6 +80,30 @@
                     <testFailureIgnore>false</testFailureIgnore>
                     <useSystemClassLoader>true</useSystemClassLoader>
                 </configuration>
+            </plugin>
+
+            <!-- JaCoCo Plugin for Code Coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.plugin.version}</version>
+                <executions>
+                    <!-- Attach JaCoCo agent to test phase -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- Generate coverage report after tests -->
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
