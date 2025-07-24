@@ -4,6 +4,8 @@ import org.openqa.selenium.support.ui.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import java.time.Duration; // ✅ Import for Duration
+
 public class JuiceShopUITests {
     private WebDriver driver;
     private WebDriverWait wait;
@@ -11,7 +13,7 @@ public class JuiceShopUITests {
     @BeforeClass
     public void setUp() {
         driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, 10);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // ✅ Fixed for Selenium 4+
         driver.manage().window().maximize();
         driver.get("https://juice-shop.herokuapp.com/#/login");
         dismissPopups();
