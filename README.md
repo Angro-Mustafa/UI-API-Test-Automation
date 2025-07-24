@@ -20,7 +20,7 @@ Automated testing for [SauceDemo](https://www.saucedemo.com/) (UI) and [JSONPlac
 ├── .github/workflows/ci.yml
 └── README.md
 
-text
+
 
 ## Running the Tests
 
@@ -28,19 +28,19 @@ text
 
 mvn test -Dtest=SauceDemoUITests
 
-text
+
 
 ### API Tests (JSONPlaceholder)
 
 mvn test -Dtest=JsonPlaceholderApiTests
 
-text
+
 
 ### Run All Tests
 
 mvn clean test
 
-text
+
 
 ## CI/CD with GitHub Actions
 
