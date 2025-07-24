@@ -1,4 +1,4 @@
-name: CI Automation for Juice Shop Tests
+name: CI Automation for SauceDemo & JSONPlaceholder
 
 on:
   push:
@@ -8,11 +8,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      selenium:
-        image: selenium/standalone-firefox
-        ports: [ 4444:4444 ]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,21 +28,14 @@ jobs:
         run: mvn install -DskipTests=true
 
       - name: Run UI tests
-        run: mvn test -Dtest=JuiceShopUITests
+        run: mvn test -Dtest=SauceDemoUITests
 
-      - name: Run API tests and JaCoCo report
-        run: mvn verify -Dtest=JuiceShopApiTests
+      - name: Run API tests
+        run: mvn test -Dtest=JsonPlaceholderApiTests
 
-      - name: Upload UI screenshots
+      - name: Archive screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-screenshots
           path: target/screenshots/
-
-      - name: Upload JaCoCo report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/
