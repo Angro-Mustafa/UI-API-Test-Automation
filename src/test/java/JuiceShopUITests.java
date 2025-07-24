@@ -26,17 +26,28 @@ public class JuiceShopUITests {
         dismissPopups();
     }
 
-    private void dismissPopups() {
-        try {
-            WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
-            closeBtn.click();
-        } catch (Exception ignored) {}
-        try {
-            new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
-        } catch (Exception ignored) {}
-    }
+   private void dismissPopups() {
+    // Dismiss initial dialog (welcome)
+    try {
+        WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
+            .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
+        closeBtn.click();
+    } catch (Exception ignored) {}
+
+    // Dismiss cookie consent bar if present
+    try {
+        WebElement cookieBtn = new WebDriverWait(driver, Duration.ofSeconds(2))
+            .until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.cc-btn.cc-dismiss")));
+        cookieBtn.click();
+    } catch (Exception ignored) {}
+
+    // Wait for snack bar to disappear, if shown
+    try {
+        new WebDriverWait(driver, Duration.ofSeconds(2))
+            .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
+    } catch (Exception ignored) {}
+}
+
 
     private void waitForSnackBarText(String expected) {
         try {
@@ -61,15 +72,18 @@ public class JuiceShopUITests {
 
     @Test(priority = 1)
     public void loginWithValidCredentials() {
-        driver.navigate().refresh();
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
-        driver.findElement(By.xpath("//input[@type='email']")).clear();
-        driver.findElement(By.xpath("//input[@type='email']")).sendKeys("test994@test.com");
-        driver.findElement(By.xpath("//input[@type='password']")).clear();
-        driver.findElement(By.xpath("//input[@type='password']")).sendKeys("222888Mmm!");
-        clickWhenClickable(By.xpath("//button[@id='loginButton']"));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("navbarLogoutButton")));
-        Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed(), "Logout button not found after login.");
+    driver.get("https://juice-shop.herokuapp.com/#/login");
+    dismissPopups();
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@type='email']")));
+    driver.findElement(By.xpath("//input[@type='email']")).clear();
+    driver.findElement(By.xpath("//input[@type='email']")).sendKeys("test994@test.com");
+    driver.findElement(By.xpath("//input[@type='password']")).clear();
+    driver.findElement(By.xpath("//input[@type='password']")).sendKeys("222888Mmm!");
+    WebElement loginBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@id='loginButton']")));
+    loginBtn.click();
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("navbarLogoutButton")));
+    Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed());
+}
     }
 
     @Test(priority = 2)
