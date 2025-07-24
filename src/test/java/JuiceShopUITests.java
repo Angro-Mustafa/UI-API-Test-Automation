@@ -11,40 +11,67 @@ public class JuiceShopUITests {
     private WebDriver driver;
     private WebDriverWait wait;
 
-@BeforeClass
-public void setUp() {
-    ChromeOptions options = new ChromeOptions();
-    options.addArguments("--no-sandbox"); // Recommended for CI
-    options.addArguments("--disable-dev-shm-usage"); // Recommended for CI
-    options.addArguments("--headless=new"); // Headless mode for CI
-    options.addArguments("--window-size=1920,1080"); // Stable browser size
-    options.addArguments("--user-data-dir=/tmp/chrome-user-data-" + System.currentTimeMillis()); // Ensures unique user data directory
-
-    driver = new ChromeDriver(options);
-    wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-    driver.manage().window().maximize();
-    driver.get("https://juice-shop.herokuapp.com/#/login");
-    dismissPopups();
-}
+    @BeforeClass
+    public void setUp() {
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--headless=new");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("--user-data-dir=/tmp/chrome-user-data-" + System.currentTimeMillis());
+        driver = new ChromeDriver(options);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        driver.manage().window().maximize();
+        driver.get("https://juice-shop.herokuapp.com/#/login");
+        dismissPopups();
+    }
 
     private void dismissPopups() {
         try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog"))).click();
+            WebElement closeBtn = new WebDriverWait(driver, Duration.ofSeconds(3))
+                    .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button.close-dialog")));
+            closeBtn.click();
         } catch (Exception ignored) {}
         try {
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
+            new WebDriverWait(driver, Duration.ofSeconds(3))
+                    .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
         } catch (Exception ignored) {}
+    }
+
+    private void waitForSnackBarText(String expected) {
+        try {
+            WebElement snackBar = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.cssSelector(".mat-simple-snack-bar-content")));
+            Assert.assertTrue(snackBar.getText().toLowerCase().contains(expected.toLowerCase()));
+        } catch (TimeoutException e) {
+            Assert.fail("Snack bar with text '" + expected + "' not found in time.");
+        }
+    }
+
+    private void clickWhenClickable(By locator) {
+        wait.until(ExpectedConditions.elementToBeClickable(locator));
+        try {
+            driver.findElement(locator).click();
+        } catch (ElementClickInterceptedException e) {
+            // Try to remove overlays and retry
+            dismissPopups();
+            wait.until(ExpectedConditions.elementToBeClickable(locator));
+            driver.findElement(locator).click();
+        }
     }
 
     @Test(priority = 1)
     public void loginWithValidCredentials() {
+        driver.navigate().refresh();
         driver.findElement(By.id("email")).clear();
         driver.findElement(By.id("email")).sendKeys("test994@test.com");
         driver.findElement(By.id("password")).clear();
         driver.findElement(By.id("password")).sendKeys("222888Mmm!");
-        driver.findElement(By.id("loginButton")).click();
+
+        clickWhenClickable(By.id("loginButton"));
+
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("navbarLogoutButton")));
-        Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed());
+        Assert.assertTrue(driver.findElement(By.id("navbarLogoutButton")).isDisplayed(), "Logout button not found after login.");
     }
 
     @Test(priority = 2)
@@ -54,54 +81,64 @@ public void setUp() {
         driver.findElement(By.id("email")).sendKeys("invalid@user.com");
         driver.findElement(By.id("password")).clear();
         driver.findElement(By.id("password")).sendKeys("WrongPass123!");
-        driver.findElement(By.id("loginButton")).click();
-        WebElement snackBar = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
-        Assert.assertTrue(snackBar.getText().toLowerCase().contains("invalid"));
+        clickWhenClickable(By.id("loginButton"));
+        waitForSnackBarText("invalid");
     }
 
     @Test(priority = 3)
     public void registerNewUser() {
         driver.get("https://juice-shop.herokuapp.com/#/register");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("emailControl")));
         String unique = String.valueOf(System.currentTimeMillis());
         driver.findElement(By.id("emailControl")).sendKeys("auto" + unique + "@test.com");
         driver.findElement(By.id("passwordControl")).sendKeys("SomePass123!");
         driver.findElement(By.id("repeatPasswordControl")).sendKeys("SomePass123!");
-        driver.findElement(By.name("securityAnswer")).sendKeys("Automation");
-        driver.findElement(By.id("registerButton")).click();
-        WebElement snackBar = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".mat-simple-snack-bar-content")));
-        Assert.assertTrue(snackBar.getText().toLowerCase().contains("registration completed"));
+        // Wait for the security question to show up and interact
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.name("securityQuestion")));
+        WebElement securityInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("securityAnswerControl")));
+        securityInput.sendKeys("Automation");
+        clickWhenClickable(By.id("registerButton"));
+        waitForSnackBarText("registration completed");
     }
 
     @Test(priority = 4, dependsOnMethods = "loginWithValidCredentials")
     public void addItemToBasket() {
         driver.get("https://juice-shop.herokuapp.com/#/search");
-        WebElement addBtn = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[aria-label='Add to Basket']")));
-        addBtn.click();
-        WebElement basketCounter = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.fa-layers-counter")));
-        Assert.assertTrue(Integer.parseInt(basketCounter.getText()) > 0);
+        By addBtnLocator = By.cssSelector("button[aria-label='Add to Basket']");
+        wait.until(ExpectedConditions.elementToBeClickable(addBtnLocator));
+        clickWhenClickable(addBtnLocator);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.fa-layers-counter")));
+        int count = Integer.parseInt(driver.findElement(By.cssSelector("span.fa-layers-counter")).getText());
+        Assert.assertTrue(count > 0, "Basket counter was not incremented.");
     }
 
     @Test(priority = 5, dependsOnMethods = "addItemToBasket")
     public void editBasketItemQuantity() {
-        driver.findElement(By.id("navbarBasketButton")).click();
-        WebElement qtyInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[name='quantity']")));
+        clickWhenClickable(By.id("navbarBasketButton"));
+        By qtyLocator = By.cssSelector("input[name='quantity']");
+        WebElement qtyInput = wait.until(ExpectedConditions.visibilityOfElementLocated(qtyLocator));
         int origQty = Integer.parseInt(qtyInput.getAttribute("value"));
         qtyInput.clear();
         qtyInput.sendKeys(String.valueOf(origQty + 1));
-        driver.findElement(By.cssSelector("button[aria-label='update quantity']")).click();
+        clickWhenClickable(By.cssSelector("button[aria-label='update quantity']"));
         wait.until(ExpectedConditions.attributeToBe(qtyInput, "value", String.valueOf(origQty + 1)));
         Assert.assertEquals(qtyInput.getAttribute("value"), String.valueOf(origQty + 1));
     }
 
     @Test(priority = 6, dependsOnMethods = "editBasketItemQuantity")
     public void deleteItemFromBasket() {
-        WebElement removeBtn = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[aria-label^='Remove']")));
-        removeBtn.click();
-        wait.until(ExpectedConditions.invisibilityOf(removeBtn));
-        Assert.assertTrue(driver.getPageSource().contains("Your basket is empty") || driver.findElements(By.cssSelector("mat-row")).size() == 0);
+        By removeBtnLocator = By.cssSelector("button[aria-label^='Remove']"); // Removes any item
+        wait.until(ExpectedConditions.elementToBeClickable(removeBtnLocator));
+        clickWhenClickable(removeBtnLocator);
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.invisibilityOfElementLocated(removeBtnLocator),
+                ExpectedConditions.textToBePresentInElementLocated(By.cssSelector("mat-card"), "Your basket is empty")
+        ));
+        boolean empty = driver.getPageSource().contains("Your basket is empty") || driver.findElements(By.cssSelector("mat-row")).size() == 0;
+        Assert.assertTrue(empty, "Basket not empty after removal.");
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void tearDown() {
         if (driver != null) driver.quit();
     }
