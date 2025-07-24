@@ -10,14 +10,21 @@ public class JuiceShopUITests {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    @BeforeClass
-    public void setUp() {
-        driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Use Duration, not int
-        driver.manage().window().maximize();
-        driver.get("https://juice-shop.herokuapp.com/#/login");
-        dismissPopups();
-    }
+@BeforeClass
+public void setUp() {
+    ChromeOptions options = new ChromeOptions();
+    options.addArguments("--no-sandbox"); // Recommended for CI
+    options.addArguments("--disable-dev-shm-usage"); // Recommended for CI
+    options.addArguments("--headless=new"); // Headless mode for CI
+    options.addArguments("--window-size=1920,1080"); // Stable browser size
+    options.addArguments("--user-data-dir=/tmp/chrome-user-data-" + System.currentTimeMillis()); // Ensures unique user data directory
+
+    driver = new ChromeDriver(options);
+    wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    driver.manage().window().maximize();
+    driver.get("https://juice-shop.herokuapp.com/#/login");
+    dismissPopups();
+}
 
     private void dismissPopups() {
         try {
